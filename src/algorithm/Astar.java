@@ -1,51 +1,56 @@
 package algorithm;
 import decis.*;
 
+
 /**
  * Created by Roman on 21.05.2017.
  */
 public class Astar {
-
-    public static final int UP = -4;
-    public static final int DOWN = 4;
-    public static final int LEFT = -1;
-    public static final int RIGHT = 1;
     public int H;
     public int G;
     public int F;
     public int[] begArr = new int[16];
-    public int[] termState1 = new int[16];
-    public int[] termState2 = new int[16];
+    public int[] termState1 = {1, 2, 3, 4,
+            5, 6, 7, 8,
+            9, 10, 11, 12,
+            13, 14, 15, -1};
+    public int[] termState2 = {1, 2, 3, 4,
+            5, 6, 7, 8,
+            9, 10, 11, 12,
+            13, 15, 14, -1};
     public int[] temp = new int[16];
-    public int[] tempA = new int[16];
     public int[] tempU = new int[16];
     public int[] tempD = new int[16];
     public int[] tempL = new int[16];
     public int[] tempR = new int[16];
     public int flag = 0;
-    public int tempGU, tempGD, tempGL, tempGR;
-    public int tempHU, tempHD, tempHL, tempHR;
-    public int tempFU, tempFD, tempFL, tempFR;
+    public int[] tempG = new int[4];//up=0,down=1,left=2,right=3;
+    public int[] tempH = new int[4];
+    public int[] tempF = new int[4];
+
+
+    enum direction {
+        UP(-4),
+        DOWN(4),
+        RIGHT(1),
+        LEFT(-1);
+        private final int shift;
+
+        direction(int dir) {
+            shift = dir;
+        }
+
+        public int getDir() {
+            return shift;
+        }
+    }
 
     public Astar(MainIssue begState) {
-        begArr = begState.getArr();
-        fillTerm();
+        begArr = begState.array1;
         H = getHTerm1(begArr);
         F = H + G;
     }
 
-    public void fillTerm() {
-        for (int i = 0; i < 16; i++) {
-            termState1[i] = i + 1;
-        }
-        termState1[15] = -1;
-        for (int i = 0; i < 16; i++) {
-            termState2[i] = i + 1;
-        }
-        termState2[15] = -1;
-        termState2[14] = 14;
-        termState2[13] = 15;
-    }
 
     public int getHnumber(int[] arr, int i) {
         int numInBeg = 0;
@@ -85,128 +90,151 @@ public class Astar {
         return m2;
     }
 
-    public void swapCell(int dir, int tempHDir, int tempGDir, int tempFDir, int[] tempDir, int flag) {
+    public void swapCell(direction dir, int tempHDir, int tempGDir, int tempFDir, int[] tempDir, int flag) {
         int tempCell = 0;
         tempGDir++;
         for (int j = 0; j < 16; j++) {
             temp[j] = begArr[j];
         }
         int empCell = findEmp(temp);
-        int ttempHU = getHnumber(temp, empCell + dir);
-        tempCell = temp[empCell + dir];
-        temp[empCell + dir] = -1;
+        int ttempHU = getHnumber(temp, empCell + dir.getDir());
+        tempCell = temp[empCell + dir.getDir()];
+        temp[empCell + dir.getDir()] = -1;
         temp[empCell] = tempCell;
         tempHDir = getHnumber(temp, empCell);
         flag = 0;
         if (tempHDir < ttempHU) {
             tempFDir = tempHDir + tempGDir;
-            //System.out.println("dir " + dir + tempFDir);
             tempDir = temp;
-            //tempA = tempDir;
             temp = new int[16];
-            switch (dir) {
+            int i = 0;
+            switch (dir.getDir()) {
                 case -1:
-                    tempHL = tempHDir;
-                    tempGL = tempGDir;
-                    tempFL = tempHDir + tempGDir;
+                    i = 2;
+                    tempH[i] = tempHDir;
+                    tempG[i] = tempGDir;
+                    tempF[i] = tempHDir + tempGDir;
                     tempL = tempDir;
-                    System.out.println("left " + tempFL);
+                    System.out.println("left " + tempF[i]);
                     break;
                 case 1:
-                    tempHR = tempHDir;
-                    tempGR = tempGDir;
-                    tempFR = tempHDir + tempGDir;
+                    i = 3;
+                    tempH[i] = tempHDir;
+                    tempG[i] = tempGDir;
+                    tempF[i] = tempHDir + tempGDir;
                     tempR = tempDir;
-                    System.out.println("Right " + tempFR);
+                    System.out.println("Right " + tempF[i]);
                     break;
                 case -4:
-                    tempHU = tempHDir;
-                    tempGU = tempGDir;
-                    tempFU = tempHDir + tempGDir;
+                    i = 0;
+                    tempH[i] = tempHDir;
+                    tempG[i] = tempGDir;
+                    tempF[i] = tempHDir + tempGDir;
                     tempU = tempDir;
-                    System.out.println("Up " + tempFU);
+                    System.out.println("Up " + tempF[i]);
                     break;
                 case 4:
-                    tempHD = tempHDir;
-                    tempGD = tempGDir;
-                    tempFD = tempHDir + tempGDir;
+                    i = 1;
+                    tempH[i] = tempHDir;
+                    tempG[i] = tempGDir;
+                    tempF[i] = tempHDir + tempGDir;
                     tempD = tempDir;
-                    System.out.println("Down " + tempFD);
+                    System.out.println("Down " + tempF[i]);
                     break;
             }
             flag = 1;
         }
     }
 
+    public boolean isEcuals(int[] a, int[] b) {
+        int cnt = 0;
+        for (int i = 0; i < 16; i++) {
+            if (a[i] == b[i]) cnt++;
+        }
+        if (cnt == 16) return true;
+        return false;
+    }
+
+    public void clearArr(int[] a) {
+        for (int i = 0; i < 16; i++) {
+            a[i] = 0;
+        }
+    }
+
+    public void ecuateArr(int[] a, int[] b) {
+        for (int i = 0; i < 16; i++) {
+            b[i] = a[i];
+        }
+    }
+
     public void alghor() {
         int empCell = findEmp(begArr);
         G = 0;
-        tempGU = G;
-        tempGD = G;
-        tempGL = G;
-        tempGR = G;
-        tempHU = H;
-        tempHD = H;
-        tempHL = H;
-        tempHR = H;
-        tempFU = G + H;
-        tempFD = G + H;
-        tempFL = G + H;
-        tempFR = G + H;
+        for (int i = 0; i < 4; i++) {
+            tempG[i] = G;
+            tempH[i] = H;
+            tempF[i] = H + G;
+        }
+
         while (begArr != termState1) {
             for (int i = 0; i < 4; i++) {
                 empCell = findEmp(begArr);
                 if (i == 0) {//UP
                     if ((empCell != 0) && (empCell != 1) && (empCell != 2) && (empCell != 3)) {
-                        swapCell(UP, tempHU, tempGU, tempFU, tempU, flag);
-                    } else tempFU = 1000000000;
+                        swapCell(direction.UP, tempH[i], tempG[i], tempF[i], tempU, flag);
+                    } else tempF[i] = 1000000000;
                 }
                 if (i == 1) {//DOWN
                     if ((empCell != 12) && (empCell != 13) && (empCell != 14) && (empCell != 15)) {
-                        swapCell(DOWN, tempHD, tempGD, tempFD, tempD, flag);
-                    } else tempFD = 1000000000;
+                        swapCell(direction.DOWN, tempH[i], tempG[i], tempF[i], tempD, flag);
+                    } else tempF[i] = 1000000000;
                 }
                 if (i == 2) {//LEFT
                     if ((empCell != 0) && (empCell != 4) && (empCell != 8) && (empCell != 12)) {
-                        swapCell(LEFT, tempHL, tempGL, tempFL, tempL, flag);
-                    } else tempFL = 1000000000;
+                        swapCell(direction.LEFT, tempH[i], tempG[i], tempF[i], tempL, flag);
+                    } else tempF[i] = 1000000000;
                 }
                 if (i == 3) {//RIGHT
                     if ((empCell != 3) && (empCell != 7) && (empCell != 11) && (empCell != 15)) {
-                        swapCell(RIGHT, tempHR, tempGR, tempFR, tempR, flag);
-                    } else tempFR = 1000000000;
+                        swapCell(direction.RIGHT, tempH[i], tempG[i], tempF[i], tempR, flag);
+                    } else tempF[i] = 1000000000;
                 }
             }
-            F = minF(tempFU, tempFD, tempFL, tempFR);
-            if ((F == tempFU)) {
-                begArr = tempU;
-                H = tempHU;
-                G = tempGU;
+            F = minF(tempF[0], tempF[1], tempF[2], tempF[3]);
+            if ((F == tempF[0])) {
+                ecuateArr(tempU, begArr);
+                H = tempH[0];
+                G = tempG[0];
             }
-            if ((F == tempFD)) {
-                begArr = tempD;
-                H = tempHD;
-                G = tempGD;
+            if ((F == tempF[1])) {
+                ecuateArr(tempD, begArr);
+                H = tempH[1];
+                G = tempG[1];
             }
-            if ((F == tempFR)) {
-                begArr = tempR;
-                H = tempHR;
-                G = tempGR;
+            if ((F == tempF[2])) {
+                ecuateArr(tempL, begArr);
+                H = tempH[2];
+                G = tempG[2];
             }
-            if ((F == tempFL)) {
-                begArr = tempL;
-                H = tempHL;
-                G = tempGL;
+            if ((F == tempF[3])) {
+                ecuateArr(tempR, begArr);
+                H = tempH[3];
+                G = tempG[3];
             }
-            if (flag == 0) {
-
-            }
+            clearArr(tempL);
+            clearArr(tempD);
+            clearArr(tempR);
+            clearArr(tempU);
 
             for (int i = 0; i < 16; i++) {
                 System.out.print(begArr[i] + " ");
                 if (i > 0)
                     if ((15 - i) % 4 == 0)
                         System.out.println();
+            }
+            if ((isEcuals(begArr, termState1))||(isEcuals(begArr,termState2))) {
+                System.out.println("Решение завершено");
+                break;
             }
         }
 

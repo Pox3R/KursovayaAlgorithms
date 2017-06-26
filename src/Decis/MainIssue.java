@@ -7,12 +7,16 @@ import java.util.Date;
  * Created by Roman on 21.05.2017.
  */
 public class MainIssue {
-    private Date time, time1;
+    private Date time;
     private BitSet input;
-    private Random rnd, rnd1;
+    private Random rnd;
     private int count;
     private int genCount = 0;
     private int[] array = new int[16];
+    public int[] array1 = {1, 2, 3, 4,
+                        5, 6, 7, -1,
+                        9, 10, 11, 8,
+                        13, 14, 15, 12};
 
     public MainIssue(int in) {
         time = new Date();
